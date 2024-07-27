@@ -3,101 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WhatsApp-style Chat Application</title>
-    <style>
-        /* ... (previous styles remain the same) ... */
-    </style>
+    <title>Updated Webhook Test</title>
 </head>
 <body>
-    <div id="chat-container">
-        <div id="chat-messages"></div>
-        <form id="question-form">
-            <input type="text" id="question-input" placeholder="Type your question..." required>
-            <button type="submit" id="submit-btn">Send</button>
-        </form>
-    </div>
+    <h1>Updated Webhook Test</h1>
+    <form id="testForm">
+        <input type="text" id="questionInput" placeholder="Enter your question">
+        <button type="submit">Send</button>
+    </form>
+    <div id="result"></div>
 
     <script>
-        const form = document.getElementById('question-form');
-        const input = document.getElementById('question-input');
-        const chatMessages = document.getElementById('chat-messages');
+        const form = document.getElementById('testForm');
+        const input = document.getElementById('questionInput');
+        const result = document.getElementById('result');
         const webhookUrl = 'https://hook.us1.make.com/gq9dnrf4s5gi9f6x3g7ihuslfg5u679b';
-
-        const voices = [
-            { title: "Expert 1", class: "voice1" },
-            { title: "Specialist 2", class: "voice2" },
-            { title: "Advisor 3", class: "voice3" }
-        ];
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const question = input.value.trim();
             if (!question) return;
 
-            addMessage("You", question, "user");
-
             try {
                 const response = await fetch(webhookUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json'
                     },
-                    body: JSON.stringify({ 
-                        question: question,
-                        timestamp: new Date().toISOString(),
-                        source: 'web_chat'
-                    }),
+                    body: JSON.stringify({ question: question }),
                 });
 
-                console.log('Response status:', response.status);
-                console.log('Response headers:', response.headers);
-
-                if (!response.ok) {
-                    const responseText = await response.text();
-                    console.log('Response text:', responseText);
-                    throw new Error(`HTTP error! status: ${response.status}, message: ${responseText}`);
+                if (response.ok) {
+                    result.textContent = `Success! Status: ${response.status}`;
+                    // Simulate responses here
+                    simulateResponses();
+                } else {
+                    result.textContent = `Error: ${response.status} ${response.statusText}`;
                 }
 
-                const data = await response.json();
-                console.log('Webhook response:', data);
-
-                // If we get here, the webhook was successful
-                simulateResponses();
-
             } catch (error) {
-                console.error('Error:', error);
-                addMessage("System", `Error: ${error.message}. Simulating responses instead.`, "user");
-                simulateResponses();
+                result.textContent = `Error: ${error.message}`;
             }
-
-            input.value = '';
         });
 
         function simulateResponses() {
+            const voices = ["Expert 1", "Specialist 2", "Advisor 3"];
             for (let i = 0; i < 9; i++) {
-                const voice = voices[i % 3];
                 setTimeout(() => {
-                    addMessage(voice.title, `Simulated response ${i + 1} from ${voice.title}`, voice.class);
+                    const responseDiv = document.createElement('div');
+                    responseDiv.textContent = `${voices[i % 3]}: Simulated response ${i + 1}`;
+                    result.appendChild(responseDiv);
                 }, (i + 1) * 1000);
             }
-        }
-
-        function addMessage(title, text, voiceClass) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', voiceClass);
-            
-            const titleDiv = document.createElement('div');
-            titleDiv.classList.add('title');
-            titleDiv.textContent = title;
-            messageDiv.appendChild(titleDiv);
-
-            const contentDiv = document.createElement('div');
-            contentDiv.textContent = text;
-            messageDiv.appendChild(contentDiv);
-
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
         }
     </script>
 </body>
