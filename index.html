@@ -105,10 +105,13 @@
         }
 
         function sendWebhook(question) {
+            const payload = JSON.stringify({ question: question });
+            console.log('Sending payload:', payload);
+            
             fetch(webhookUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question: question }),
+                body: payload,
             })
             .then(response => {
                 if (!response.ok) {
@@ -149,4 +152,3 @@
     </script>
 </body>
 </html>
-
