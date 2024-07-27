@@ -3,136 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Application</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <title>Webhook Test with Simulation</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background-color: #f0f0f0;
-        }
-        #chat-container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            padding: 20px;
-        }
-        #chat-messages {
-            height: 300px;
-            overflow-y: auto;
-            border: 1px solid #ccc;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-        .message {
-            margin-bottom: 10px;
-            padding: 5px 10px;
-            border-radius: 10px;
-            max-width: 70%;
-        }
-        .voice1 { background-color: #dcf8c6; align-self: flex-end; }
-        .voice2 { background-color: #e8e8e8; align-self: flex-start; }
-        .voice3 { background-color: #fff0f5; align-self: flex-start; }
-        #question-form {
-            display: flex;
-        }
-        #question-input {
-            flex-grow: 1;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px 0 0 5px;
-        }
-        #submit-btn {
-            padding: 10px 20px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 0 5px 5px 0;
-            cursor: pointer;
-        }
-        #timer {
-            text-align: center;
-            font-size: 24px;
-            margin-top: 20px;
-        }
+        .error { color: red; }
+        .simulation { color: blue; }
     </style>
 </head>
 <body>
-    <div id="chat-container">
-        <div id="chat-messages"></div>
-        <form id="question-form">
-            <input type="text" id="question-input" placeholder="Type your question..." required>
-            <button type="submit" id="submit-btn">Send</button>
-        </form>
-        <div id="timer"></div>
-    </div>
+    <h1>Webhook Test with Simulation</h1>
+    <form id="testForm">
+        <input type="text" id="questionInput" placeholder="Enter your question">
+        <button type="submit">Send</button>
+    </form>
+    <div id="result"></div>
 
     <script>
-        const chatMessages = document.getElementById('chat-messages');
-        const questionForm = document.getElementById('question-form');
-        const questionInput = document.getElementById('question-input');
-        const timerDisplay = document.getElementById('timer');
-        const webhookUrl = 'https://hook.us1.make.com/gq9dnrf4s5gi9f6x3g7ihuslfg5u679b'; // Replace with your actual webhook URL
+        const form = document.getElementById('testForm');
+        const input = document.getElementById('questionInput');
+        const result = document.getElementById('result');
+        const webhookUrl = 'https://hook.us1.make.com/gq9dnrf4s5gi9f6x3g7ihuslfg5u679b';
 
-        questionForm.addEventListener('submit', function(e) {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const question = questionInput.value.trim();
-            if (question) {
-                addMessage(question, 'voice1');
-                sendWebhook(question);
-                questionInput.value = '';
-                triggerConfetti();
-                startCountdown();
+            const question = input.value.trim();
+            if (!question) return;
+
+            result.innerHTML = ''; // Clear previous results
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question: question }),
+                });
+
+                if (response.ok) {
+                    result.innerHTML += `<p>Success! Status: ${response.status}</p>`;
+                    // Here you would process the actual response from the webhook
+                } else {
+                    const errorText = await response.text();
+                    result.innerHTML += `<p class="error">Error: ${response.status} ${response.statusText}. ${errorText}</p>`;
+                    simulateResponses();
+                }
+
+            } catch (error) {
+                result.innerHTML += `<p class="error">Error: ${error.message}</p>`;
+                simulateResponses();
             }
         });
 
-        function addMessage(text, voiceClass) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('message', voiceClass);
-            messageDiv.textContent = text;
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function sendWebhook(question) {
-            fetch(webhookUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ question: question }),
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Simulate responses from different voices
-                setTimeout(() => addMessage("Response from Voice 2", 'voice2'), 1000);
-                setTimeout(() => addMessage("Response from Voice 3", 'voice3'), 2000);
-            })
-            .catch(error => console.error('Error:', error));
-        }
-
-        function triggerConfetti() {
-            confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { y: 0.6 }
-            });
-        }
-
-        function startCountdown() {
-            let timeLeft = 60;
-            const countdownTimer = setInterval(() => {
-                if (timeLeft <= 0) {
-                    clearInterval(countdownTimer);
-                    timerDisplay.textContent = "Time's up!";
-                } else {
-                    timerDisplay.textContent = `${timeLeft} seconds remaining`;
-                    timeLeft--;
-                }
-            }, 1000);
+        function simulateResponses() {
+            result.innerHTML += '<p class="simulation">Simulating responses due to webhook failure:</p>';
+            const voices = ["Expert 1", "Specialist 2", "Advisor 3"];
+            for (let i = 0; i < 9; i++) {
+                setTimeout(() => {
+                    const responseDiv = document.createElement('p');
+                    responseDiv.className = 'simulation';
+                    responseDiv.textContent = `${voices[i % 3]}: Simulated response ${i + 1}`;
+                    result.appendChild(responseDiv);
+                }, (i + 1) * 1000);
+            }
         }
     </script>
 </body>
