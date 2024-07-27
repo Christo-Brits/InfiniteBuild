@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WhatsApp-style Chat Application</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.5.1/confetti.min.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -62,11 +61,6 @@
             border-radius: 20px;
             cursor: pointer;
         }
-        #timer {
-            text-align: center;
-            font-size: 24px;
-            margin-top: 20px;
-        }
     </style>
 </head>
 <body>
@@ -77,15 +71,12 @@
             <button type="submit" id="submit-btn">Send</button>
         </form>
     </div>
-    <div id="timer"></div>
 
     <script>
         const form = document.getElementById('question-form');
         const input = document.getElementById('question-input');
         const chatMessages = document.getElementById('chat-messages');
-        const timerDisplay = document.getElementById('timer');
         const webhookUrl = 'https://hook.us1.make.com/gq9dnrf4s5gi9f6x3g7ihuslfg5u679b';
-        const corsProxyUrl = 'https://cors-anywhere.herokuapp.com/';
 
         const voices = [
             { title: "Expert 1", class: "voice1" },
@@ -101,11 +92,10 @@
             addMessage("You", question, "user");
 
             try {
-                const response = await fetch(corsProxyUrl + webhookUrl, {
+                const response = await fetch(webhookUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Origin': 'null'
                     },
                     body: JSON.stringify({ question }),
                 });
@@ -124,14 +114,6 @@
                         addMessage(voice.title, `Response ${i + 1} from ${voice.title}`, voice.class);
                     }, (i + 1) * 1000);
                 }
-
-                confetti({
-                    particleCount: 100,
-                    spread: 70,
-                    origin: { y: 0.6 }
-                });
-
-                startCountdown(60);
 
             } catch (error) {
                 console.error('Error:', error);
@@ -156,21 +138,6 @@
 
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function startCountdown(seconds) {
-            let timeLeft = seconds;
-            timerDisplay.textContent = timeLeft;
-            
-            const countdownInterval = setInterval(() => {
-                timeLeft--;
-                timerDisplay.textContent = timeLeft;
-                
-                if (timeLeft <= 0) {
-                    clearInterval(countdownInterval);
-                    timerDisplay.textContent = "Time's up!";
-                }
-            }, 1000);
         }
     </script>
 </body>
