@@ -48,7 +48,6 @@
             float: right;
         }
         .message-incoming {
-            background-color: #fff;
             float: left;
         }
         .message-info {
@@ -107,7 +106,42 @@
     </div>
 
     <script>
-        // ... (keep the existing JavaScript code) ...
+        const form = document.getElementById('chatForm');
+        const input = document.getElementById('questionInput');
+        const chatMessages = document.querySelector('.chat-messages');
+        const webhookUrl = 'https://hook.us1.make.com/gq9dnrf4s5gi9f6x3g7ihuslfg5u679b'; // Replace with your actual webhook URL
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const question = input.value.trim();
+            if (!question) return;
+
+            appendMessage(question, 'message-outgoing');
+            input.value = '';
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question: question }),
+                });
+
+                if (response.ok) {
+                    const htmlContent = await response.text();
+                    console.log("Raw response:", htmlContent); // For debugging
+                    processWebhookResponse(htmlContent);
+                } else {
+                    const errorText = await response.text();
+                    console.error("Error response:", errorText); // For debugging
+                    appendMessage(`Error: ${response.status} ${response.statusText}`, 'message-incoming error');
+                }
+            } catch (error) {
+                console.error("Fetch error:", error); // For debugging
+                appendMessage(`Error: ${error.message}`, 'message-incoming error');
+            }
+        });
 
         function processWebhookResponse(htmlContent) {
             console.log("Received content:", htmlContent);
@@ -121,10 +155,18 @@
                 if (textDiv) {
                     let text = textDiv.textContent.trim();
                     let className = 'message-incoming';
-                    if (message.classList.contains('expert1')) className += ' expert1';
-                    else if (message.classList.contains('expert2')) className += ' expert2';
-                    else if (message.classList.contains('expert3')) className += ' expert3';
-                    else if (message.classList.contains('round')) className += ' round';
+                    if (message.classList.contains('expert1')) {
+                        className += ' expert1';
+                        text = text || 'Expert 1: Response pending...';
+                    } else if (message.classList.contains('expert2')) {
+                        className += ' expert2';
+                        text = text || 'Expert 2: Response pending...';
+                    } else if (message.classList.contains('expert3')) {
+                        className += ' expert3';
+                        text = text || 'Expert 3: Response pending...';
+                    } else if (message.classList.contains('round')) {
+                        className += ' round';
+                    }
                     let time = infoDiv ? infoDiv.textContent.trim() : null;
                     appendMessage(text, className, time);
                 }
@@ -135,7 +177,17 @@
             }
         }
 
-        // ... (keep the rest of the JavaScript code) ...
+        function appendMessage(text, className, time = null) {
+            if (!text) return; // Don't append empty messages
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${className}`;
+            messageDiv.innerHTML = `
+                <div>${text}</div>
+                <div class="message-info">${time || new Date().toLocaleTimeString()}</div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
     </script>
 </body>
 </html>
