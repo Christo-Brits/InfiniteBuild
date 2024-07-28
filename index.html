@@ -143,20 +143,33 @@
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlContent, 'text/html');
             const messages = doc.querySelectorAll('.chat-messages .message');
-            
+    
             messages.forEach(message => {
                 const textDiv = message.querySelector('div:not(.message-info)');
                 const infoDiv = message.querySelector('.message-info');
                 if (textDiv) {
                     let text = textDiv.textContent.trim();
                     let className = 'message-incoming';
-                    if (message.classList.contains('expert1')) className += ' expert1';
-                    else if (message.classList.contains('expert2')) className += ' expert2';
-                    else if (message.classList.contains('expert3')) className += ' expert3';
+                if (message.classList.contains('expert1')) {
+                    className += ' expert1';
+                    text = text || 'Expert 1: Response pending...';
+                }  else if (message.classList.contains('expert2')) {
+                    className += ' expert2';
+                    text = text || 'Expert 2: Response pending...';
+                }    else if (message.classList.contains('expert3')) {
+                    className += ' expert3';
+                    text = text || 'Expert 3: Response pending...';
+                }
                     let time = infoDiv ? infoDiv.textContent.trim() : null;
                     appendMessage(text, className, time);
                 }
             });
+
+    // If no messages were found, display an error
+    if (messages.length === 0) {
+        appendMessage('Error: No response received from experts.', 'message-incoming error');
+    }
+});
         }
 
         function appendMessage(text, className, time = null) {
