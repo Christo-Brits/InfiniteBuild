@@ -116,28 +116,25 @@
             input.value = '';
 
             try {
-                const response = await fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ question: question }),
+                 const response = await fetch(webhookUrl, {
+                method: 'POST',
+                 headers: {
+                 'Content-Type': 'application/json',
+                 },
+                body: JSON.stringify({ question: question }),
                 });
 
-                if (response.ok) {
-                    const htmlContent = await response.text();
-                    processWebhookResponse(htmlContent);
-                } else {
-                    const errorText = await response.text();
-                    appendMessage(`Error: ${response.status} ${response.statusText}. ${errorText}`, 'message-incoming error');
-                    simulateResponses();
+            if (response.ok) {
+                const htmlContent = await response.text();
+              processWebhookResponse(htmlContent);
+            } else {
+                 const errorText = await response.text();
+                 appendMessage(`Error: ${response.status} ${response.statusText}. ${errorText}`, 'message-incoming error');
                 }
-
             } catch (error) {
                 appendMessage(`Error: ${error.message}`, 'message-incoming error');
-                simulateResponses();
             }
-        });
+            });
 
         function processWebhookResponse(htmlContent) {
             appendMessage('Round 1', 'message-incoming');
