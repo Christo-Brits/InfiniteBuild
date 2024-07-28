@@ -142,6 +142,10 @@
             color: white;
         }
         @media print {
+            body, html {
+                height: auto;
+                overflow: visible;
+            }
             body * {
                 visibility: hidden;
             }
@@ -152,6 +156,22 @@
                 position: absolute;
                 left: 0;
                 top: 0;
+                width: 100%;
+                max-width: none;
+                height: auto;
+                overflow: visible;
+                box-shadow: none;
+            }
+            .chat-messages {
+                overflow: visible;
+                height: auto;
+            }
+            .message {
+                max-width: 100%;
+                page-break-inside: avoid;
+            }
+            .input-area, #darkModeToggle, #printButton {
+                display: none;
             }
         }
     </style>
@@ -191,7 +211,16 @@
 
         // Print button
         printButton.addEventListener('click', () => {
+            // Temporarily remove max-height to show all messages
+            const originalMaxHeight = chatMessages.style.maxHeight;
+            chatMessages.style.maxHeight = 'none';
+            
             window.print();
+            
+            // Restore original max-height after printing
+            setTimeout(() => {
+                chatMessages.style.maxHeight = originalMaxHeight;
+            }, 0);
         });
 
         form.addEventListener('submit', async (e) => {
