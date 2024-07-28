@@ -83,7 +83,6 @@
             justify-content: center;
         }
         .error { color: #ff0000; }
-        .simulation { color: #888; }
         .expert1 { color: #FF5733; }
         .expert2 { color: #33FF57; }
         .expert3 { color: #3357FF; }
@@ -94,18 +93,18 @@
         <div class="chat-header">
             Expert Chat
         </div>
-        <div id="chat-messages" class="chat-messages"></div>
-        <form id="testForm" class="input-area">
+        <div class="chat-messages"></div>
+        <form id="chatForm" class="input-area">
             <input type="text" id="questionInput" placeholder="Type a message">
             <button type="submit">Send</button>
         </form>
     </div>
 
     <script>
-        const form = document.getElementById('testForm');
+        const form = document.getElementById('chatForm');
         const input = document.getElementById('questionInput');
-        const chatMessages = document.getElementById('chat-messages');
-        const webhookUrl = 'https://hook.us1.make.com/gq9dnrf4s5gi9f6x3g7ihuslfg5u679b';
+        const chatMessages = document.querySelector('.chat-messages');
+        const webhookUrl = 'https://hook.us1.make.com/gq9dnrf4s5gi9f6x3g7ihuslfg5u679b'; // Replace with your actual webhook URL
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -116,51 +115,51 @@
             input.value = '';
 
             try {
-                 const response = await fetch(webhookUrl, {
-                 method: 'POST',
-                 headers: {
-                 'Content-Type': 'application/json',
-                 },
-            body: JSON.stringify({ question: question }),
-             });
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ question: question }),
+                });
 
-            if (response.ok) {
-                const htmlContent = await response.text();
-                processWebhookResponse(htmlContent);
-        } else {
-            const errorText = await response.text();
-            appendMessage(`Error: ${response.status} ${response.statusText}. ${errorText}`, 'message-incoming error');
-        }
-        } catch (error) {
-            appendMessage(`Error: ${error.message}`, 'message-incoming error');
+                if (response.ok) {
+                    const textContent = await response.text();
+                    console.log("Raw response:", textContent); // For debugging
+                    processWebhookResponse(textContent);
+                } else {
+                    const errorText = await response.text();
+                    console.error("Error response:", errorText); // For debugging
+                    appendMessage(`Error: ${response.status} ${response.statusText}`, 'message-incoming error');
+                }
+            } catch (error) {
+                console.error("Fetch error:", error); // For debugging
+                appendMessage(`Error: ${error.message}`, 'message-incoming error');
+            }
+        });
+
+        function processWebhookResponse(textContent) {
+            const lines = textContent.split('\n');
+            lines.forEach(line => {
+                if (line.trim() !== '') {
+                    let className = 'message-incoming';
+                    if (line.startsWith('Expert 1:')) className += ' expert1';
+                    else if (line.startsWith('Expert 2:')) className += ' expert2';
+                    else if (line.startsWith('Expert 3:')) className += ' expert3';
+                    appendMessage(line.trim(), className);
+                }
+            });
         }
 
-        function processWebhookResponse(htmlContent) {
-            appendMessage('Round 1', 'message-incoming');
-            appendMessage('Error: Cannot read properties of null (reading \'textContent\')', 'message-incoming error');
-            simulateResponses();
-        }
-
-        function appendMessage(text, className, extraClass = '') {
+        function appendMessage(text, className) {
             const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${className} ${extraClass}`;
+            messageDiv.className = `message ${className}`;
             messageDiv.innerHTML = `
                 <div>${text}</div>
                 <div class="message-info">${new Date().toLocaleTimeString()}</div>
             `;
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function simulateResponses() {
-            appendMessage('Simulating responses due to webhook failure:', 'message-incoming simulation');
-            const experts = ["Expert 1", "Specialist 2", "Advisor 3"];
-            const expertClasses = ["expert1", "expert2", "expert3"];
-            for (let i = 0; i < 9; i++) {
-                setTimeout(() => {
-                    appendMessage(`${experts[i % 3]}: Simulated response ${i + 1}`, 'message-incoming', expertClasses[i % 3]);
-                }, (i + 1) * 1000);
-            }
         }
     </script>
 </body>
