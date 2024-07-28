@@ -24,7 +24,7 @@
         .chat-header {
             background-color: #075e54;
             color: white;
-            padding: 15px;
+            padding: Spx;
             text-align: center;
             font-size: 18px;
             font-weight: bold;
@@ -124,9 +124,9 @@
                 });
 
                 if (response.ok) {
-                    const textContent = await response.text();
-                    console.log("Raw response:", textContent); // For debugging
-                    processWebhookResponse(textContent);
+                    const htmlContent = await response.text();
+                    console.log("Raw response:", htmlContent); // For debugging
+                    processWebhookResponse(htmlContent);
                 } else {
                     const errorText = await response.text();
                     console.error("Error response:", errorText); // For debugging
@@ -138,25 +138,34 @@
             }
         });
 
-        function processWebhookResponse(textContent) {
-            const lines = textContent.split('\n');
-            lines.forEach(line => {
-                if (line.trim() !== '') {
+        function processWebhookResponse(htmlContent) {
+            console.log("Received content:", htmlContent);
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+            const messages = doc.querySelectorAll('.chat-messages .message');
+            
+            messages.forEach(message => {
+                const textDiv = message.querySelector('div:not(.message-info)');
+                const infoDiv = message.querySelector('.message-info');
+                if (textDiv) {
+                    let text = textDiv.textContent.trim();
                     let className = 'message-incoming';
-                    if (line.startsWith('Expert 1:')) className += ' expert1';
-                    else if (line.startsWith('Expert 2:')) className += ' expert2';
-                    else if (line.startsWith('Expert 3:')) className += ' expert3';
-                    appendMessage(line.trim(), className);
+                    if (message.classList.contains('expert1')) className += ' expert1';
+                    else if (message.classList.contains('expert2')) className += ' expert2';
+                    else if (message.classList.contains('expert3')) className += ' expert3';
+                    let time = infoDiv ? infoDiv.textContent.trim() : null;
+                    appendMessage(text, className, time);
                 }
             });
         }
 
-        function appendMessage(text, className) {
+        function appendMessage(text, className, time = null) {
+            if (!text) return; // Don't append empty messages
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${className}`;
             messageDiv.innerHTML = `
                 <div>${text}</div>
-                <div class="message-info">${new Date().toLocaleTimeString()}</div>
+                <div class="message-info">${time || new Date().toLocaleTimeString()}</div>
             `;
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
