@@ -10,27 +10,47 @@
             margin: 0;
             padding: 0;
             height: 100%;
-            transition: background-color 0.3s, color 0.3s;
+            background-color: #f0f0f0;
         }
-        body.dark-mode {
-            background-color: #121212;
-            color: #ffffff;
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .landing-page, .chat-container {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .landing-page {
+            display: block;
         }
         .chat-container {
-            max-width: 400px;
-            margin: 0 auto;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            transition: background-color 0.3s, box-shadow 0.3s;
+            display: none;
+            height: 100vh;
         }
-        body:not(.dark-mode) .chat-container {
-            background-color: #ffffff;
+        .instruction-box {
+            background-color: #e6f7ff;
+            border: 1px solid #91d5ff;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 20px;
         }
-        body.dark-mode .chat-container {
-            background-color: #1e1e1e;
-            box-shadow: 0 0 10px rgba(255,255,255,0.1);
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #075e54;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
         }
         .chat-header {
             background-color: #075e54;
@@ -39,12 +59,9 @@
             text-align: center;
             font-size: 18px;
             font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
         .chat-messages {
-            flex: 1;
+            height: calc(100% - 150px);
             overflow-y: auto;
             padding: 10px;
         }
@@ -53,175 +70,73 @@
             margin-bottom: 10px;
             padding: 8px 12px;
             border-radius: 7px;
-            position: relative;
             clear: both;
-            font-size: 14px;
         }
         .message-outgoing {
             background-color: #dcf8c6;
             float: right;
         }
-        body.dark-mode .message-outgoing {
-            background-color: #056162;
-            color: white;
-        }
         .message-incoming {
+            background-color: #fff;
             float: left;
-        }
-        .message-info {
-            font-size: 0.75em;
-            color: #888;
-            margin-top: 4px;
         }
         .input-area {
             display: flex;
             padding: 10px;
             background-color: #f0f0f0;
-            align-items: center;
-        }
-        body.dark-mode .input-area {
-            background-color: #2a2a2a;
         }
         #questionInput {
             flex: 1;
             padding: 10px;
-            border: none;
+            border: 1px solid #ddd;
             border-radius: 20px;
             margin-right: 10px;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        body.dark-mode #questionInput {
-            background-color: #3a3a3a;
-            color: white;
-        }
-        button {
-            background-color: #075e54;
-            color: white;
-            border: none;
-            padding: 10px;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .error { color: #ff0000; }
-        .expert1 { background-color: #FFCCCB; color: black; }
-        .expert2 { background-color: #90EE90; color: black; }
-        .expert3 { background-color: #ADD8E6; color: black; }
-        .round { 
-            background-color: #075e54; 
-            color: white; 
-            font-weight: bold;
-            text-align: center;
-        }
-        #darkModeToggle, #printButton {
-            background: none;
-            border: none;
-            color: white;
-            cursor: pointer;
-            font-size: 20px;
-        }
-        #countdownOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            display: none;
-        }
-        #countdownTimer {
-            font-size: 48px;
-            color: white;
-        }
-        @media print {
-            body, html {
-                height: auto;
-                overflow: visible;
-            }
-            body * {
-                visibility: hidden;
-            }
-            .chat-container, .chat-container * {
-                visibility: visible;
-            }
-            .chat-container {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 100%;
-                max-width: none;
-                height: auto;
-                overflow: visible;
-                box-shadow: none;
-            }
-            .chat-messages {
-                overflow: visible;
-                height: auto;
-            }
-            .message {
-                max-width: 100%;
-                page-break-inside: avoid;
-            }
-            .input-area, #darkModeToggle, #printButton {
-                display: none;
-            }
         }
     </style>
 </head>
 <body>
-    <div class="chat-container">
-        <div class="chat-header">
-            <button id="darkModeToggle">🌓</button>
-            Expert Chat
-            <button id="printButton">🖨️</button>
+    <div class="container">
+        <div class="landing-page">
+            <h1>Expert Chat</h1>
+            <div class="instruction-box">
+                <p>The more information you provide, the better the results will be. Please fill out the following fields to generate your question.</p>
+            </div>
+            <textarea id="background" rows="4" placeholder="Provide background information"></textarea>
+            <textarea id="problemStatement" rows="4" placeholder="Describe the problem statement"></textarea>
+            <textarea id="additionalInfo" rows="4" placeholder="Any additional information or specific questions"></textarea>
+            <button onclick="generateQuestion()">Generate Question and Start Chat</button>
         </div>
-        <div class="chat-messages"></div>
-        <form id="chatForm" class="input-area">
-            <input type="text" id="questionInput" placeholder="Type a message">
-            <button type="submit">Send</button>
-        </form>
-    </div>
-    <div id="countdownOverlay">
-        <div id="countdownTimer"></div>
+
+        <div class="chat-container">
+            <div class="chat-header">Expert Chat</div>
+            <div class="chat-messages"></div>
+            <form id="chatForm" class="input-area">
+                <input type="text" id="questionInput" placeholder="Type a message" readonly>
+                <button type="submit">Send</button>
+            </form>
+        </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <script>
         const form = document.getElementById('chatForm');
         const input = document.getElementById('questionInput');
         const chatMessages = document.querySelector('.chat-messages');
-        const darkModeToggle = document.getElementById('darkModeToggle');
-        const printButton = document.getElementById('printButton');
-        const countdownOverlay = document.getElementById('countdownOverlay');
-        const countdownTimer = document.getElementById('countdownTimer');
         const webhookUrl = 'https://hook.us1.make.com/gq9dnrf4s5gi9f6x3g7ihuslfg5u679b'; // Replace with your actual webhook URL
 
-        // Dark mode toggle
-        darkModeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark-mode');
-        });
+        function generateQuestion() {
+            const background = document.getElementById('background').value;
+            const problemStatement = document.getElementById('problemStatement').value;
+            const additionalInfo = document.getElementById('additionalInfo').value;
 
-        // Print button
-        printButton.addEventListener('click', () => {
-            // Temporarily remove max-height to show all messages
-            const originalMaxHeight = chatMessages.style.maxHeight;
-            chatMessages.style.maxHeight = 'none';
-            
-            window.print();
-            
-            // Restore original max-height after printing
-            setTimeout(() => {
-                chatMessages.style.maxHeight = originalMaxHeight;
-            }, 0);
-        });
+            const generatedQuestion = `Background: ${background}\n\nProblem Statement: ${problemStatement}\n\nAdditional Information: ${additionalInfo}\n\nBased on the above information, please provide expert advice and solutions.`;
+
+            document.querySelector('.landing-page').style.display = 'none';
+            document.querySelector('.chat-container').style.display = 'block';
+
+            input.value = generatedQuestion;
+            input.style.height = 'auto';
+            input.style.height = input.scrollHeight + 'px';
+        }
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -230,10 +145,6 @@
 
             appendMessage(question, 'message-outgoing');
             input.value = '';
-
-            // Start countdown and confetti
-            startCountdown(70);
-            showConfetti();
 
             try {
                 const response = await fetch(webhookUrl, {
@@ -246,100 +157,40 @@
 
                 if (response.ok) {
                     const htmlContent = await response.text();
-                    console.log("Raw response:", htmlContent); // For debugging
                     processWebhookResponse(htmlContent);
                 } else {
-                    const errorText = await response.text();
-                    console.error("Error response:", errorText); // For debugging
-                    appendMessage(`Error: ${response.status} ${response.statusText}`, 'message-incoming error');
+                    appendMessage(`Error: ${response.status} ${response.statusText}`, 'message-incoming');
                 }
             } catch (error) {
-                console.error("Fetch error:", error); // For debugging
-                appendMessage(`Error: ${error.message}`, 'message-incoming error');
-            } finally {
-                // Stop countdown
-                stopCountdown();
+                appendMessage(`Error: ${error.message}`, 'message-incoming');
             }
         });
 
         function processWebhookResponse(htmlContent) {
-            console.log("Received content:", htmlContent);
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlContent, 'text/html');
             const messages = doc.querySelectorAll('.chat-messages .message');
             
             messages.forEach(message => {
                 const textDiv = message.querySelector('div:not(.message-info)');
-                const infoDiv = message.querySelector('.message-info');
                 if (textDiv) {
                     let text = textDiv.textContent.trim();
                     let className = 'message-incoming';
-                    if (message.classList.contains('expert1')) {
-                        className += ' expert1';
-                        text = text || 'Expert 1: Response pending...';
-                    } else if (message.classList.contains('expert2')) {
-                        className += ' expert2';
-                        text = text || 'Expert 2: Response pending...';
-                    } else if (message.classList.contains('expert3')) {
-                        className += ' expert3';
-                        text = text || 'Expert 3: Response pending...';
-                    } else if (message.classList.contains('round')) {
-                        className += ' round';
-                    }
-                    let time = infoDiv ? infoDiv.textContent.trim() : null;
-                    appendMessage(text, className, time);
+                    appendMessage(text, className);
                 }
             });
 
             if (messages.length === 0) {
-                appendMessage('Error: No response received from experts.', 'message-incoming error');
+                appendMessage('Error: No response received from experts.', 'message-incoming');
             }
         }
 
-        function appendMessage(text, className, time = null) {
-            if (!text) return; // Don't append empty messages
+        function appendMessage(text, className) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${className}`;
-            messageDiv.innerHTML = `
-                <div>${text}</div>
-                <div class="message-info">${time || new Date().toLocaleTimeString()}</div>
-            `;
+            messageDiv.textContent = text;
             chatMessages.appendChild(messageDiv);
             chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        function startCountdown(seconds) {
-            countdownOverlay.style.display = 'flex';
-            let remainingTime = seconds;
-            countdownTimer.textContent = remainingTime;
-
-            const intervalId = setInterval(() => {
-                remainingTime--;
-                countdownTimer.textContent = remainingTime;
-                if (remainingTime <= 0) {
-                    clearInterval(intervalId);
-                    countdownOverlay.style.display = 'none';
-                }
-            }, 1000);
-
-            // Store the interval ID so we can clear it if needed
-            countdownOverlay.dataset.intervalId = intervalId;
-        }
-
-        function stopCountdown() {
-            const intervalId = countdownOverlay.dataset.intervalId;
-            if (intervalId) {
-                clearInterval(intervalId);
-            }
-            countdownOverlay.style.display = 'none';
-        }
-
-        function showConfetti() {
-            confetti({
-                particleCount: 100,
-                spread: 70,
-                origin: { y: 0.6 }
-            });
         }
     </script>
 </body>
