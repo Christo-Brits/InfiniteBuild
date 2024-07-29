@@ -4,13 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expert Chat</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         body, html {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 0;
             height: 100%;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        body {
             background-color: #f0f0f0;
+            color: #333;
+        }
+        body.dark-mode {
+            background-color: #121212;
+            color: #f0f0f0;
         }
         .container {
             max-width: 800px;
@@ -22,13 +31,18 @@
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             padding: 20px;
+            transition: background-color 0.3s, box-shadow 0.3s;
+        }
+        body.dark-mode .landing-page, body.dark-mode .chat-container {
+            background-color: #1e1e1e;
+            box-shadow: 0 0 10px rgba(255,255,255,0.1);
         }
         .landing-page {
             display: block;
         }
         .chat-container {
             display: none;
-            height: 100vh;
+            height: calc(100vh - 40px);
         }
         .instruction-box {
             background-color: #e6f7ff;
@@ -36,13 +50,26 @@
             border-radius: 5px;
             padding: 10px;
             margin-bottom: 20px;
+            transition: background-color 0.3s, border-color 0.3s;
         }
-        textarea {
+        body.dark-mode .instruction-box {
+            background-color: #003a8c;
+            border-color: #1890ff;
+        }
+        textarea, input[type="text"] {
             width: 100%;
             padding: 10px;
             margin-bottom: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
+            background-color: #fff;
+            color: #333;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+        body.dark-mode textarea, body.dark-mode input[type="text"] {
+            background-color: #333;
+            color: #f0f0f0;
+            border-color: #555;
         }
         button {
             background-color: #075e54;
@@ -51,6 +78,10 @@
             padding: 10px 20px;
             border-radius: 5px;
             cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        body.dark-mode button {
+            background-color: #128c7e;
         }
         .chat-header {
             background-color: #075e54;
@@ -59,6 +90,9 @@
             text-align: center;
             font-size: 18px;
             font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .chat-messages {
             height: calc(100% - 150px);
@@ -76,21 +110,67 @@
             background-color: #dcf8c6;
             float: right;
         }
+        body.dark-mode .message-outgoing {
+            background-color: #056162;
+            color: white;
+        }
         .message-incoming {
             background-color: #fff;
             float: left;
+        }
+        body.dark-mode .message-incoming {
+            background-color: #262d31;
         }
         .input-area {
             display: flex;
             padding: 10px;
             background-color: #f0f0f0;
+            transition: background-color 0.3s;
+        }
+        body.dark-mode .input-area {
+            background-color: #262d31;
         }
         #questionInput {
             flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
             margin-right: 10px;
+        }
+        #darkModeToggle, #printButton {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+        }
+        #countdownOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            display: none;
+        }
+        #countdownTimer {
+            font-size: 48px;
+            color: white;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .chat-container, .chat-container * {
+                visibility: visible;
+            }
+            .chat-container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -98,6 +178,7 @@
     <div class="container">
         <div class="landing-page">
             <h1>Expert Chat</h1>
+            <button id="darkModeToggle" onclick="toggleDarkMode()">🌓</button>
             <div class="instruction-box">
                 <p>The more information you provide, the better the results will be. Please fill out the following fields to generate your question.</p>
             </div>
@@ -108,7 +189,11 @@
         </div>
 
         <div class="chat-container">
-            <div class="chat-header">Expert Chat</div>
+            <div class="chat-header">
+                <button id="darkModeToggle" onclick="toggleDarkMode()">🌓</button>
+                Expert Chat
+                <button id="printButton" onclick="window.print()">🖨️</button>
+            </div>
             <div class="chat-messages"></div>
             <form id="chatForm" class="input-area">
                 <input type="text" id="questionInput" placeholder="Type a message" readonly>
@@ -117,11 +202,21 @@
         </div>
     </div>
 
+    <div id="countdownOverlay">
+        <div id="countdownTimer"></div>
+    </div>
+
     <script>
         const form = document.getElementById('chatForm');
         const input = document.getElementById('questionInput');
         const chatMessages = document.querySelector('.chat-messages');
+        const countdownOverlay = document.getElementById('countdownOverlay');
+        const countdownTimer = document.getElementById('countdownTimer');
         const webhookUrl = 'https://hook.us1.make.com/gq9dnrf4s5gi9f6x3g7ihuslfg5u679b'; // Replace with your actual webhook URL
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+        }
 
         function generateQuestion() {
             const background = document.getElementById('background').value;
@@ -138,6 +233,31 @@
             input.style.height = input.scrollHeight + 'px';
         }
 
+        function startCountdown(seconds) {
+            countdownOverlay.style.display = 'flex';
+            let remainingTime = seconds;
+            countdownTimer.textContent = remainingTime;
+
+            const intervalId = setInterval(() => {
+                remainingTime--;
+                countdownTimer.textContent = remainingTime;
+                if (remainingTime <= 0) {
+                    clearInterval(intervalId);
+                    countdownOverlay.style.display = 'none';
+                }
+            }, 1000);
+
+            return intervalId;
+        }
+
+        function showConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const question = input.value.trim();
@@ -145,6 +265,9 @@
 
             appendMessage(question, 'message-outgoing');
             input.value = '';
+
+            const countdownId = startCountdown(80);
+            showConfetti();
 
             try {
                 const response = await fetch(webhookUrl, {
@@ -163,6 +286,9 @@
                 }
             } catch (error) {
                 appendMessage(`Error: ${error.message}`, 'message-incoming');
+            } finally {
+                clearInterval(countdownId);
+                countdownOverlay.style.display = 'none';
             }
         });
 
